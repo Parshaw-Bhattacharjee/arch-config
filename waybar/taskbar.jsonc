@@ -111,7 +111,7 @@
       "critical": 10
     },
     "events": {
-      "on-discharging-100": "notify-send -t 0 -u normal 'Battery Full!!!' 'Remove your Charger!'",
+      "on-charging-100": "notify-send -t 0 -u normal 'Battery Full!!!' 'Remove your Charger!'",
       "on-discharging-warning": "notify-send -t 0 -u low 'Battery Low!!!' 'Plug-In your Charger!'",
 		  "on-discharging-critical": "notify-send -t 0 -u critical 'Battery Critical!!!' 'Shutting Down Soon...'"
     },
