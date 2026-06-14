@@ -101,8 +101,8 @@ $ mount -o defaults,noatime,nodiratime,discard,barrier=1,data=ordered /dev/nvme0
 $ mkdir -p /mnt/boot
 $ mount -t vfat -o defaults,noatime,nodiratime,umask=000 /dev/nvme0n1p1 /mnt/boot
 
-# Create and enable swapfile (12G)
-$ fallocate -l 12G /mnt/swapfile
+# Create and enable swapfile (4G)
+$ fallocate -l 4G /mnt/swapfile
 $ chmod 600 /mnt/swapfile
 $ mkswap -L swapfile /mnt/swapfile
 $ swapon -o defaults,pri=100,discard=pages /mnt/swapfile
@@ -161,7 +161,7 @@ $ locale-gen
 ### 4. Install Kernel & Essential Packages
 
 ```bash
-$ pacman -S --needed base-devel git neovim sudo reflector pipewire-pulse network-manager-applet blueman vlc curl dolphin firewalld alacritty hyprland hyprpolkitagent hyprpaper waybar rofi sddm mako xdg-desktop-portal xdg-desktop-portal-hyprland python python-pip fastfetch cliphist hyprpwcenter power-profiles-daemon
+$ pacman -S --needed base-devel git sudo reflector pipewire-pulse network-manager-applet blueman vlc curl dolphin firewalld alacritty hyprland hyprpolkitagent hyprpaper waybar hyprlauncher sddm mako xdg-desktop-portal xdg-desktop-portal-hyprland python python-pip fastfetch cliphist hyprpwcenter power-profiles-daemon
 ```
 
 ### 5. Configure Initramfs
@@ -175,13 +175,8 @@ $ nvim /etc/mkinitcpio.conf
 ```bash
 $ mkinitcpio -P
 ```
-### 6. Set `root` Password
 
-```bash
-$ passwd
-```
-
-### 7. User Creation & Password
+### 6. User Creation & Password
 
 ```bash
 $ useradd -m -G wheel parshaw
@@ -197,20 +192,20 @@ $ sudo nvim /etc/sudoers.d/parshaw
 ```
 > parshaw ALL=(root) NOPASSWD:ALL
 
-### 8. Install Bootloader (GRUB)
+### 7. Install Bootloader (GRUB)
 
 ```bash
 $ grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
 $ grub-mkconfig -o /boot/grub/grub.cfg
 ```
 
-### 9. Enable Services
+### 8. Enable Services
 
 ```bash
 $ systemctl enable NetworkManager bluetooth firewalld reflector.timer fstrim.timer acpid sddm
 ```
 
-### 10. Reboot
+### 9. Reboot
 
 ```bash
 $ swapoff /mnt/swapfile
@@ -270,9 +265,7 @@ $ git clone https://github.com/Parshaw-Bhattacharjee/arch-conf.git
 
 > mako: ~/.config
 
-> rofi: ~/.config
-
-> sddm: /etc/sddm.d
+> sddm: /etc/sddm.conf
 
 > waybar: ~/.config
 
