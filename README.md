@@ -89,23 +89,29 @@ $ gdisk /dev/nvme0n1
 ### 4. Format Partitions
 
 ```bash
-$ mkfs.fat -F 32 /dev/nvme0n1p1    # EFI partition
-$ mkfs.ext4 /dev/nvme0n1p2         # Root partition
+$ mkfs.fat -F 32 /dev/nvme0n1p1     # EFI partition
+$ mkfs.btrfs /dev/nvme0n1p2         # Root partition
 ```
 
 ### 5. Mount Partitions
 
 ```bash
-$ mount -o defaults,noatime,nodiratime,discard,barrier=1,data=ordered /dev/nvme0n1p2 /mnt
+$ mount -o defaults,noatime,nodiratime,discard,barrier=1,data=ordered,compress=zstd,ssd,space_cache=v2,subvol=@ /dev/nvme0n1p2 /mnt
 
-$ mkdir -p /mnt/boot
+$ mkdir -p /mnt/{home,swap,var,boot}
+
+$ mount -o defaults,noatime,nodiratime,discard,barrier=1,data=ordered,compress=zstd,ssd,space_cache=v2,subvol=@home /dev/nvme0n1p2 /mnt/home
+$ mount -o defaults,noatime,nodiratime,ssd,space_cache=v2,subvol=@swap /dev/nvme0n1p2 /mnt/swap
+$ mount -o defaults,noatime,nodiratime,ssd,space_cache=v2,subvol=@var /dev/nvme0n1p2 /mnt/var
 $ mount -t vfat -o defaults,noatime,nodiratime,umask=000 /dev/nvme0n1p1 /mnt/boot
 
 # Create and enable swapfile (4G)
-$ fallocate -l 4G /mnt/swapfile
-$ chmod 600 /mnt/swapfile
-$ mkswap -L swapfile /mnt/swapfile
-$ swapon -o defaults,pri=100,discard=pages /mnt/swapfile
+$ chattr +C /mnt/swap
+$ truncate -s 0 /mnt/swap/swapfile
+$ fallocate -l 4G /mnt/swap/swapfile
+$ chmod 600 /mnt/swap/swapfile
+$ mkswap -L swapfile /mnt/swap/swapfile
+$ swapon -o defaults,discard=pages /mnt/swap/swapfile
 ```
 
 ### 6. Update Mirrorlist
@@ -118,7 +124,6 @@ $ reflector --verbose --protocol https --sort rate --save /etc/pacman.d/mirrorli
 
 ```bash
 $ pacstrap -K /mnt base
-
 $ echo "LANG=en_US.UTF-8" >> /mnt/etc/locale.conf
 $ echo "KEYMAP=us" >> /mnt/etc/vconsole.conf
 $ echo "<your-hostname>" >> /mnt/etc/hostname
@@ -161,10 +166,21 @@ $ locale-gen
 ### 4. Install Kernel & Essential Packages
 
 ```bash
-$ pacman -S --needed base-devel git sudo reflector pipewire-pulse network-manager-applet blueman vlc curl dolphin firewalld alacritty hyprland hyprpolkitagent hyprpaper waybar hyprlauncher sddm mako xdg-desktop-portal xdg-desktop-portal-hyprland python python-pip fastfetch cliphist hyprpwcenter power-profiles-daemon
+$ pacman -S --needed base-devel git sudo reflector pipewire-pulse network-manager-applet blueman zram-generator vlc curl dolphin firewalld alacritty hyprland hyprpolkitagent hyprpaper waybar hyprlauncher sddm mako xdg-desktop-portal xdg-desktop-portal-hyprland python python-pip fastfetch cliphist hyprpwcenter power-profiles-daemon
 ```
 
-### 5. Configure Initramfs
+### 5. Configure zram
+
+```bash
+$ nvim /etc/systemd/zram-generator.conf
+```
+
+> [zram0]
+> zram-size = 4096
+> compression-algorithm = zstd
+> swap-priority = 100
+
+### 6. Configure Initramfs
 
 ```bash
 $ nvim /etc/mkinitcpio.conf
@@ -176,7 +192,7 @@ $ nvim /etc/mkinitcpio.conf
 $ mkinitcpio -P
 ```
 
-### 6. User Creation & Password
+### 7. User Creation & Password
 
 ```bash
 $ useradd -m -G wheel parshaw
@@ -192,20 +208,20 @@ $ sudo nvim /etc/sudoers.d/parshaw
 ```
 > parshaw ALL=(root) NOPASSWD:ALL
 
-### 7. Install Bootloader (GRUB)
+### 8. Install Bootloader (GRUB)
 
 ```bash
 $ grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
 $ grub-mkconfig -o /boot/grub/grub.cfg
 ```
 
-### 8. Enable Services
+### 9. Enable Services
 
 ```bash
-$ systemctl enable NetworkManager bluetooth firewalld reflector.timer fstrim.timer acpid sddm
+$ systemctl enable systemd-zram-setup@zram0.service NetworkManager bluetooth firewalld reflector.timer fstrim.timer acpid sddm
 ```
 
-### 9. Reboot
+### 10. Reboot
 
 ```bash
 $ swapoff /mnt/swapfile
@@ -216,6 +232,12 @@ $ reboot
 ---
 
 ## Post-Installation & Configuration
+
+### 1. Connect to network
+
+```bash
+$ sudo nmcli dev wifi connect "SSID" password "Password"
+```
 
 ### 1. Update & Upgrade
 
@@ -241,14 +263,12 @@ $ sudo pacman -S <package-name>
 ### 4. Install AUR Packages
 
 ```bash
-$ paru -Sy brave-bin visual-studio-code-bin
+$ paru -Sy zen-browser-bin visual-studio-code-bin
 ```
 
 ### 5. Install Oh My Zsh
 
-```bash
-$ sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-```
+<p>Check OhMyZsh.</p>
 
 ### 6. Configure Hyprland
 
