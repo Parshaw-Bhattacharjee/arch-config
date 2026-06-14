@@ -186,7 +186,7 @@ $ nvim /etc/systemd/zram-generator.conf
 $ nvim /etc/mkinitcpio.conf
 ```
 
-> Set: MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm)
+> Set: MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm btrfs)
 
 ```bash
 $ mkinitcpio -P
