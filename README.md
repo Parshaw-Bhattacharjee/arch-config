@@ -166,7 +166,7 @@ $ locale-gen
 ### 4. Install Kernel & Essential Packages
 
 ```bash
-$ pacman -S --needed base-devel git sudo reflector pipewire-pulse network-manager-applet blueman zram-generator vlc curl dolphin firewalld alacritty hyprland hyprpolkitagent hyprpaper waybar hyprlauncher sddm mako xdg-desktop-portal xdg-desktop-portal-hyprland python python-pip fastfetch cliphist hyprpwcenter power-profiles-daemon
+$ pacman -S --needed base-devel git sudo reflector pipewire-pulse network-manager-applet blueman zram-generator vlc curl dolphin firewalld alacritty hyprland hyprpolkitagent hyprpaper waybar hyprlauncher sddm mako xdg-desktop-portal xdg-desktop-portal-hyprland python python-pip fastfetch wl-clipboard hyprpwcenter 7zip jq grim slurp hyprpicker power-profiles-daemon
 ```
 
 ### 5. Configure zram
@@ -263,7 +263,7 @@ $ sudo pacman -S <package-name>
 ### 4. Install AUR Packages
 
 ```bash
-$ paru -Sy zen-browser-bin visual-studio-code-bin
+$ paru -Sy cliphist grimblast-git zen-browser-bin visual-studio-code-bin
 ```
 
 ### 5. Install Oh My Zsh
