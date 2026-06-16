@@ -1,8 +1,5 @@
 # Arch Linux: Install & Configure
-
-> **Type:** Runbook &nbsp;|&nbsp; **Classification:** Personal
-
-A step-by-step runbook for installing and configuring Arch Linux with Hyprland as the desktop environment.
+A step-by-step guide for installing and configuring Arch Linux with Hyprland as the desktop environment.
 
 ---
 
@@ -20,7 +17,7 @@ A step-by-step runbook for installing and configuring Arch Linux with Hyprland a
 ### 1. Installation Image
 
 Download the latest Arch Linux ISO from the official site:
-[https://archlinux.org/download/](https://archlinux.org/download/)
+[Download Arch Linux ](https://archlinux.org/download/)
 
 ### 2. Verify Signature
 
@@ -32,7 +29,7 @@ Verify the integrity of the downloaded ISO before proceeding:
 | Linux | `sha256sum <file_path>` |
 
 Compare the output with the official SHA256 signature:
-[https://archlinux.org/iso/2025.12.01/sha256sums.txt](https://archlinux.org/iso/2025.12.01/sha256sums.txt)
+[Arch Linux SHA256 sums](https://archlinux.org/iso/2025.12.01/sha256sums.txt)
 
 ### 3. Installation Medium
 
@@ -96,22 +93,15 @@ $ mkfs.btrfs /dev/nvme0n1p2         # Root partition
 ### 5. Mount Partitions
 
 ```bash
+$ btrfs subvolume create /mnt/{@, @home, @var}
+
 $ mount -o defaults,noatime,nodiratime,discard,barrier=1,data=ordered,compress=zstd,ssd,space_cache=v2,subvol=@ /dev/nvme0n1p2 /mnt
 
-$ mkdir -p /mnt/{home,swap,var,boot}
+$ mkdir -p /mnt/{home,var,boot}
 
-$ mount -o defaults,noatime,nodiratime,discard,barrier=1,data=ordered,compress=zstd,ssd,space_cache=v2,subvol=@home /dev/nvme0n1p2 /mnt/home
-$ mount -o defaults,noatime,nodiratime,ssd,space_cache=v2,subvol=@swap /dev/nvme0n1p2 /mnt/swap
-$ mount -o defaults,noatime,nodiratime,ssd,space_cache=v2,subvol=@var /dev/nvme0n1p2 /mnt/var
 $ mount -t vfat -o defaults,noatime,nodiratime,umask=000 /dev/nvme0n1p1 /mnt/boot
-
-# Create and enable swapfile (4G)
-$ chattr +C /mnt/swap
-$ truncate -s 0 /mnt/swap/swapfile
-$ fallocate -l 4G /mnt/swap/swapfile
-$ chmod 600 /mnt/swap/swapfile
-$ mkswap -L swapfile /mnt/swap/swapfile
-$ swapon -o defaults,discard=pages /mnt/swap/swapfile
+$ mount -o defaults,noatime,nodiratime,discard,barrier=1,data=ordered,compress=zstd,ssd,space_cache=v2,subvol=@home /dev/nvme0n1p2 /mnt/home
+$ mount -o defaults,noatime,nodiratime,ssd,space_cache=v2,subvol=@var /dev/nvme0n1p2 /mnt/var
 ```
 
 ### 6. Update Mirrorlist
@@ -166,7 +156,7 @@ $ locale-gen
 ### 4. Install Kernel & Essential Packages
 
 ```bash
-$ pacman -S --needed base-devel git sudo reflector pipewire-pulse network-manager-applet blueman zram-generator vlc curl dolphin firewalld alacritty hyprland hyprpolkitagent hyprpaper waybar hyprlauncher sddm mako xdg-desktop-portal xdg-desktop-portal-hyprland python python-pip fastfetch wl-clipboard hyprpwcenter 7zip jq grim slurp hyprpicker power-profiles-daemon
+$ pacman -S --needed base-devel git sudo reflector pipewire-pulse network-manager-applet blueman zram-generator vlc curl dolphin firewalld alacritty hyprland hyprpolkitagent waybar sddm mako xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-desktop-portal python python-pip fastfetch hyprpwcenter 7zip brightnessctl power-profiles-daemon
 ```
 
 ### 5. Configure zram
@@ -175,10 +165,13 @@ $ pacman -S --needed base-devel git sudo reflector pipewire-pulse network-manage
 $ nvim /etc/systemd/zram-generator.conf
 ```
 
-> [zram0]
-> zram-size = 4096
-> compression-algorithm = zstd
-> swap-priority = 100
+```
+# allocate 4G of zram
+[zram0]
+zram-size = 4096
+compression-algorithm = zstd
+swap-priority = 100
+```
 
 ### 6. Configure Initramfs
 
@@ -195,18 +188,15 @@ $ mkinitcpio -P
 ### 7. User Creation & Password
 
 ```bash
-$ useradd -m -G wheel parshaw
-$ passwd parshaw
+$ useradd -m -G wheel -s /bin/zsh <username> # to create a user with the username
+$ passwd <username> # set password for username
 
 # Set up sudo access
-$ export EDITOR = nvim
+$ export SYSTEMD_EDITOR=nvim
+$ visudo
 ```
 > Uncomment: %wheel ALL=(ALL:ALL) NOPASSWD:ALL
-
-```bash
-$ sudo nvim /etc/sudoers.d/parshaw
-```
-> parshaw ALL=(root) NOPASSWD:ALL
+> Add: parshaw ALL=(root) NOPASSWD:ALL
 
 ### 8. Install Bootloader (GRUB)
 
@@ -224,7 +214,6 @@ $ systemctl enable systemd-zram-setup@zram0.service NetworkManager bluetooth fir
 ### 10. Reboot
 
 ```bash
-$ swapoff /mnt/swapfile
 $ umount -R /mnt
 $ reboot
 ```
@@ -263,12 +252,13 @@ $ sudo pacman -S <package-name>
 ### 4. Install AUR Packages
 
 ```bash
-$ paru -Sy cliphist grimblast-git zen-browser-bin visual-studio-code-bin
+$ paru -Sy cursor-clip-git awww flameshot zen-browser-bin visual-studio-code-bin
 ```
 
-### 5. Install Oh My Zsh
+### 5. Install OhMyZsh & vicinae
 
-<p>Check OhMyZsh.</p>
+- Check [OhMyZsh](https://ohmyz.sh).
+- Check [vicinae](https://vicinae.com).
 
 ### 6. Configure Hyprland
 
@@ -278,18 +268,18 @@ $ git clone https://github.com/Parshaw-Bhattacharjee/arch-conf.git
 
 ### 7. Path of the respective settings
 
-> fastfetch: ~/.config
+> fastfetch: ~/.config/
 
-> hypr: ~/.config
+> hypr: ~/.config/
 <p>Note: Always make a backup of the old setting of hypr.</p>
 
-> mako: ~/.config
+> mako: ~/.config/
 
 > sddm: /etc/sddm.conf
 
-> waybar: ~/.config
+> waybar: ~/.config/
 
-> zsh: ~
+> zsh: ~/
 <p>Note: Always paste the files inside the zsh folder.</p>
 ---
 
